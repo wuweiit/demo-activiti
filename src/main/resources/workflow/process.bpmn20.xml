@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+  <process id="process" isExecutable="true">
+    <startEvent id="sid-1D9872FD-B78A-4992-826E-0CBBC02A0ED8"></startEvent>
+    <userTask id="sid-B22CCADD-29A0-4B94-B89C-DCA9119BAB0B" name="组长审批2" activiti:assignee="kermit">
+        <documentation>
+           ${name} 申请请假 ${day}天。
+        </documentation>
+    </userTask>
+    <sequenceFlow id="sid-F9DB8D5F-0D4A-45E0-8F1D-82225CE49541" sourceRef="sid-1D9872FD-B78A-4992-826E-0CBBC02A0ED8" targetRef="sid-B22CCADD-29A0-4B94-B89C-DCA9119BAB0B"></sequenceFlow>
+    <exclusiveGateway id="sid-536738E1-2B06-4B14-A0F5-9946C9B9D831"></exclusiveGateway>
+    <sequenceFlow id="sid-8A9D40CA-5A84-4BAD-8BAD-D18063C4BCF5" sourceRef="sid-B22CCADD-29A0-4B94-B89C-DCA9119BAB0B" targetRef="sid-536738E1-2B06-4B14-A0F5-9946C9B9D831"></sequenceFlow>
+    <userTask id="sid-9C38B68F-616F-4D72-AE8E-1B2A4E4F3BF6" name="返回给申请人" activiti:assignee="${name}">
+        <documentation>
+           领导拒绝了你的申请请假${day}天。
+        </documentation>
+    </userTask>
+    <serviceTask id="sid-4ADE1C39-A9D1-4027-B173-FB442A0E7406" name="恭喜你请假成功" activiti:class="com.wuweiit.activiti.service.VacationNoticeService">
+        <extensionElements>
+            <activiti:field name="text1">
+                <activiti:expression>Welcome to happy today</activiti:expression>
+            </activiti:field>
+        </extensionElements>
+    </serviceTask>
+    <sequenceFlow id="sid-F2A4C6F6-07E0-495A-8C26-9D78DDABFF24" name="不同意" sourceRef="sid-536738E1-2B06-4B14-A0F5-9946C9B9D831" targetRef="sid-9C38B68F-616F-4D72-AE8E-1B2A4E4F3BF6">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!agree}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-95AFE1B9-3FD2-4D34-AEA0-05329215AEEA" name="同意" sourceRef="sid-536738E1-2B06-4B14-A0F5-9946C9B9D831" targetRef="sid-4ADE1C39-A9D1-4027-B173-FB442A0E7406">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${agree}]]></conditionExpression>
+    </sequenceFlow>
+    <endEvent id="sid-0109649A-2844-4032-B53F-95CA35C5A633"></endEvent>
+    <endEvent id="sid-D4792260-024A-4FAC-BC09-DDE572A10AA6"></endEvent>
+    <sequenceFlow id="sid-70E0FA78-2CD6-4E74-BE85-91FEA5218759" name="放弃" sourceRef="sid-9C38B68F-616F-4D72-AE8E-1B2A4E4F3BF6" targetRef="sid-D4792260-024A-4FAC-BC09-DDE572A10AA6">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${abandon}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-BB45CC10-E691-401F-8ED3-4F6F607EB524" name="继续申请" sourceRef="sid-9C38B68F-616F-4D72-AE8E-1B2A4E4F3BF6" targetRef="sid-B22CCADD-29A0-4B94-B89C-DCA9119BAB0B">
+        <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!abandon}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-42FDBE76-EBC3-4434-926A-042E69AB53F8" name="成功" sourceRef="sid-4ADE1C39-A9D1-4027-B173-FB442A0E7406" targetRef="sid-0109649A-2844-4032-B53F-95CA35C5A633"></sequenceFlow>
+  </process>
+</definitions>

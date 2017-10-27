@@ -4,7 +4,6 @@
 
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.history.HistoricProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 工作流测试
@@ -35,7 +36,7 @@ import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = "classpath:spring/applicationContext.xml")
-public class MonthTest {
+public class VacationTest {
 
 
     @Autowired
@@ -59,59 +60,88 @@ public class MonthTest {
 
 
     @Test
-    public void monthtest() {
+    public void test() {
 
 
         // 部署流程定义
-        repositoryService.createDeployment().addClasspathResource("test.bpmn20.xml").deploy();
+        repositoryService.createDeployment().addClasspathResource("workflow/process.bpmn20.xml").name("请假申请流程").deploy();
 
 
+
+        Map<String, Object> variables = new HashMap<String, Object>();
+        variables.put("title", "请假申请单");// 标题
+        variables.put("day", "3");// 请假天数
+        variables.put("name", "fozzie");// 请假人
 
 
 
         // 启动流程实例
-        String procId = runtimeService.startProcessInstanceByKey("financialReport").getId();
-        // 获得第一个任务
-        List<Task> tasks = taskService.createTaskQuery().taskCandidateGroup("sales").list();
+        String procId = runtimeService.startProcessInstanceByKey("process", variables).getId();
+
+
+        // fozzie 的审批任务
+        List<Task> tasks = taskService.createTaskQuery().taskAssignee("kermit").list();
         for (Task task : tasks) {
-            System.out.println("跟踪任务 ，任务名称: " + task.getName());
+//            System.out.printf(task.getDescription());
+            System.out.println("领导拒绝请假申请！");
             // 认领任务这里由foozie认领，因为fozzie是sales组的成员
-            taskService.claim(task.getId(), "fozzie");
+            String taskId = task.getId();
+            taskService.claim(taskId, "kermit");// 签收
+            taskService.setVariable(taskId, "agree",false);// 拒绝申请
+            taskService.setVariable(taskId, "name","fozzie");// 拒绝申请
+            taskService.complete(task.getId());// 完成
         }
 
 
-
-        // 查看fozzie现在是否能够获取到该任务
+        // fozzie  继续申请
         tasks = taskService.createTaskQuery().taskAssignee("fozzie").list();
         for (Task task : tasks) {
-            System.out.println("Task for fozzie: " + task.getName());
+
+            System.out.println("fozzie 继续申请 ");
+            // 认领任务这里由foozie认领，因为fozzie是sales组的成员
+            String taskId = task.getId();
+            taskService.claim(taskId, "fozzie");// 签收
+            taskService.setVariable(taskId, "name","fozzie");//
+            taskService.setVariable(taskId, "abandon",false);//
+            taskService.complete(task.getId());// 完成
+        }
+
+
+        // fozzie 放弃申请
+//        tasks = taskService.createTaskQuery().taskAssignee("fozzie").list();
+//        for (Task task : tasks) {
+//            System.out.println("fozzie 放弃申请 ");
+//            // 认领任务这里由foozie认领，因为fozzie是sales组的成员
+//            String taskId = task.getId();
+//            taskService.claim(taskId, "fozzie");// 签收
+//            taskService.setVariable(taskId, "name","fozzie");//
+//            taskService.setVariable(taskId, "abandon",true);// 放弃
+//            taskService.complete(task.getId());// 完成
+//        }
+
+
+
+
+
+
+        // 领导同意
+        tasks = taskService.createTaskQuery().taskAssignee("kermit").list();
+        for (Task task : tasks) {
+            System.out.println("领导签收并同意申请！" );
             // 执行(完成)任务
+            String taskId = task.getId();
+            taskService.claim(taskId, "kermit");// 签收
+            taskService.setVariable(taskId, "agree",true);// 同意申请
             taskService.complete(task.getId());
         }
 
-        // 条件查询任务
-        taskService.createTaskQuery().taskCandidateOrAssigned("sales").taskVariableValueLike("dsad","dsad").list();
 
 
 
 
-        // 现在fozzie的可执行任务数就为0了
-        System.out.println(" fozzie的剩余任务量: "
-                + taskService.createTaskQuery().taskAssignee("fozzie").count());
 
 
-        // 获得第二个任务
-        tasks = taskService.createTaskQuery().taskCandidateGroup("management").list();
-        for (Task task : tasks) {
-            System.out.println("跟踪任务是否有效， group:" + task.getName());
-            // 认领任务这里由kermit认领，因为kermit是management组的成员
-            taskService.claim(task.getId(), "kermit");
-        }
-        // 完成第二个任务结束流程
-        for (Task task : tasks) {
-            System.out.println("审核完成任务：" + task.getName());
-            taskService.complete(task.getId());
-        }
+
         // 核实流程是否结束,输出流程结束时间
         HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
                 .processInstanceId(procId).singleResult();

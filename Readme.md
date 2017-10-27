@@ -23,6 +23,20 @@ MonthVarTest 测试 最简单直接的流程《审核周报流程》
 
 
 
+### 请假审批流程
+
+
+VacationTest
+
+
+### 启动 activiti-explorer.war
+
+直接放在Tomcat的webapps文件夹即可，若需要自定义数据库，将db.properties 配置为你的库
+
+注意：别忘记添加数据库驱动到lib里去。
+
+
 ### 业务与工作流整合参考
 
 http://www.kafeitu.me/activiti/2012/03/22/workflow-activiti-action.html
+http://blog.csdn.net/lovemenghaibin/article/details/50608300
