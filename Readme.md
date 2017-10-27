@@ -40,3 +40,7 @@ VacationTest
 
 http://www.kafeitu.me/activiti/2012/03/22/workflow-activiti-action.html
 http://blog.csdn.net/lovemenghaibin/article/details/50608300
+
+
+### eclipse activiti插件安装
+http://www.cnblogs.com/strinkbug/p/4876819.html
